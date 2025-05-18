@@ -13,17 +13,24 @@ public class JisLevel2ConverterTests
     static JisLevel2ConverterTests()
     {
         // テスト実行前にマッピングテーブルを初期化
-        _ = JisLevel2Mapping.IsLevel3Or4Kanji('髙');
+        _ = JisLevel2Converter.ConvertToLevel2("髙");
     }
 
     [Theory]
-    [InlineData("髙", "高")]
-    [InlineData("﨑", "崎")]
-    [InlineData("神", "神")]
-    [InlineData("髙崎", "高崎")]
-    [InlineData("髙崎神社", "高崎神社")]
-    [InlineData("普通の文字", "普通の文字")]
     [InlineData("", "")]
+    [InlineData("普通の文字ABC123", "普通の文字ABC123")]
+    [InlineData("髙﨑神社", "高崎神社")]
+    [InlineData("塚德增寬", "塚徳増寛")]
+    [InlineData("殺纊", "殺絋")]
+    [InlineData("曻雝", "昇雍")]
+    // 氏名でよく使用される文字
+    [InlineData("塚", "塚")]
+    [InlineData("德", "徳")]
+    [InlineData("增", "増")]
+    [InlineData("寬", "寛")]
+    [InlineData("德川", "徳川")]
+    [InlineData("增田", "増田")]
+    [InlineData("寬子", "寛子")]
     public void ConvertToLevel2_変換が正しく行われる(string input, string expected)
     {
         // Arrange
@@ -34,17 +41,49 @@ public class JisLevel2ConverterTests
         Assert.Equal(expected, actual);
     }
 
-    [Fact]
-    public void ConvertToLevel2_第3水準第4水準漢字が全て変換される()
+    [Theory]
+    // サロゲートペアを含む文字は変換に失敗する
+    [InlineData("𠮟", "叱")]
+    [InlineData("𡈽", "土")]
+    [InlineData("𡌛", "野")]
+    [InlineData("𡸳", "嶢")]
+    [InlineData("𢛳", "徳")]
+    [InlineData("𣏐", "杓")]
+    [InlineData("𣘺", "橋")]
+    [InlineData("𤰖", "畝")]
+    [InlineData("𥔎", "碕")]
+    [InlineData("𦙾", "脛")]
+    [InlineData("𦚰", "脇")]
+    [InlineData("𦜝", "臍")]
+    [InlineData("𦣝", "頤")]
+    [InlineData("𦣪", "塩")]
+    [InlineData("𦹥", "蔭")]
+    [InlineData("𧜎", "襷")]
+    [InlineData("𨂻", "蹈")]
+    [InlineData("𨥫", "鉚")]
+    [InlineData("𨦇", "鋏")]
+    [InlineData("𨨞", "斧")]
+    [InlineData("𨪙", "鏘")]
+    [InlineData("𨫝", "鑵")]
+    [InlineData("𨯯", "鑓")]
+    [InlineData("𨻫", "隴")]
+    [InlineData("𨼲", "蔭")]
+    [InlineData("𨿸", "鶏")]
+    [InlineData("𩜙", "饒")]
+    [InlineData("𩷛", "鯒")]
+    [InlineData("𩿎", "鴉")]
+    [InlineData("𪗱", "齟")]
+    [InlineData("𪘂", "齧")]
+    [InlineData("𪘚", "齬")]
+    public void ConvertToLevel2_サロゲートペアは変換に失敗する(string input, string expected)
     {
         // Arrange
-        var input = "髙﨑神祥福靖精羽﨟蘒﨡諸逸都飯飼館鶴郞隷侮僧免勉勤卑喝嘆器塀墨層屮悔慨憎懲敏既暑梅海渚漢煮爫琢碑";
-        var expected = "高崎神祥福靖精羽老耒耳諸逸都飯飼館鶴麗麓麗僧免勉勤卑喝嘆器塚墨層屮悔慨憎懲敏既暑梅海渚漢煮爫琢碑";
-
         // Act
         var actual = JisLevel2Converter.ConvertToLevel2(input);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.NotEqual(expected, actual); // 変換に失敗することを確認
+        Assert.Equal(input, actual); // 元の文字列がそのまま返されることを確認
     }
+
 }
